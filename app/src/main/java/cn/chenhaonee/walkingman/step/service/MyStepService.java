@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import cn.chenhaonee.walkingman.activity.MainActivity;
 import cn.chenhaonee.walkingman.me.MyInfo;
+import cn.chenhaonee.walkingman.step.utils.TimeUtil;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -48,8 +50,12 @@ public class MyStepService extends Service implements SensorEventListener {
     private int currentStep = 0;
     //历史数据-00:00以前的步数
     private int historyStep = 0;
+    private int oldStepForHeightDetect = 0;
 
-    private Map<Timestamp, Double> heights;
+    private Map<Date, Integer> counts;
+    private Map<Date, Double> heights;
+
+    private int totalHeight = 0;
 
     @Nullable
     @Override
@@ -60,6 +66,7 @@ public class MyStepService extends Service implements SensorEventListener {
 
     @Override
     public void onCreate() {
+        counts = new HashMap<>();
         heights = new HashMap<>();
         presureSensorEventListener = new PresureSensorEventListener();
         scheduleJobs();
@@ -93,6 +100,7 @@ public class MyStepService extends Service implements SensorEventListener {
             addCountStepListener();
         } else {
             // TODO: 2017/5/8
+
         }
     }
 
@@ -130,6 +138,7 @@ public class MyStepService extends Service implements SensorEventListener {
         } else if (stepSensorType == 1) {
             if (sensorEvent.values[0] == 1.0) {
                 currentStep++;
+                counts.put(TimeUtil.getNow(), 1);
             }
         }
     }
@@ -139,7 +148,7 @@ public class MyStepService extends Service implements SensorEventListener {
 
     }
 
-    private void scheduleJobs(){
+    private void scheduleJobs() {
         ScheduledExecutorService pool = Executors.newScheduledThreadPool(3);
         Calendar calendar = Calendar.getInstance();
         Date tomorrow = calendar.getTime();
@@ -157,16 +166,26 @@ public class MyStepService extends Service implements SensorEventListener {
             public void run() {
                 //todo 24小时备份步数
                 historyStep = currentStep;
-                //postDaliyDataToServer();
+                postDaliyDataToServer();
             }
         }, next, 24 * 3600 * 1000, TimeUnit.MILLISECONDS);
         pool.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 //todo 海拔计算
+                int deltStep = currentStep - oldStepForHeightDetect;
+                Date[] past = TimeUtil.lastSeconds(5);
+                double[] heights = new double[5];
+                for (int i = 0; i < 5; i++) {
+                    heights[i] = MyStepService.this.heights.get(past[i]);
+                }
+                Arrays.sort(heights);
+                double deltHeight = heights[4] - heights[0];
+                if (deltStep < 5 && deltHeight > 1.5)
+                    totalHeight += deltHeight;
 
             }
-        }, next, 24 * 3600 * 1000, TimeUnit.MILLISECONDS);
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     private void postDaliyDataToServer() {
@@ -192,11 +211,10 @@ public class MyStepService extends Service implements SensorEventListener {
             float sPV = sensorEvent.values[0];
 
             DecimalFormat df = new DecimalFormat("0.00");
-            df.getRoundingMode();
-            // 计算海拔
+            //df.getRoundingMode();
             double height = 44330000 * (1 - (Math.pow((Double.parseDouble(df.format(sPV)) / 1013.25),
                     (float) 1.0 / 5255.0)));
-            heights.put(new Timestamp(new Date().getTime()), height);
+            heights.put(TimeUtil.getNow(), height);
         }
 
         @Override
