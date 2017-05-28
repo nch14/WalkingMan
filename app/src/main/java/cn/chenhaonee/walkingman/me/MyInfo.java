@@ -6,4 +6,6 @@ package cn.chenhaonee.walkingman.me;
 
 public class MyInfo {
     public static String username;
+
+    public static String url = "http://192.168.1.123:20000";
 }

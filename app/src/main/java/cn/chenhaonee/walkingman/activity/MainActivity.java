@@ -7,6 +7,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import cn.chenhaonee.walkingman.R;
 import cn.chenhaonee.walkingman.step.service.MyStepService;
@@ -30,6 +31,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     int count = (int) msg.obj;
                     String planWalk_QTY = (String) sp.getParam("planWalk_QTY", "7000");
                     cc.setCurrentCount(Integer.parseInt(planWalk_QTY), count);
+                    break;
+                case 2:
+                    double height = (double) msg.obj;
+                    tv_isSupport.setText("今日累计上/下楼"+height+"层");
                     break;
             }
         }

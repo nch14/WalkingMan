@@ -3,7 +3,6 @@ package cn.chenhaonee.walkingman.activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -13,13 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.List;
-
 import cn.chenhaonee.walkingman.R;
-import cn.chenhaonee.walkingman.adapter.CommonAdapter;
-import cn.chenhaonee.walkingman.adapter.CommonViewHolder;
-import cn.chenhaonee.walkingman.step.pojo.StepData;
-import cn.chenhaonee.walkingman.step.utils.DbUtils;
 
 /**
  * Created by yuandl on 2016-10-18.
@@ -54,10 +47,10 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void initData() {
         setEmptyView(lv);
-        if(DbUtils.getLiteOrm()==null){
+/*        if(DbUtils.getLiteOrm()==null){
             DbUtils.createDb(this, "jingzhi");
-        }
-        List<StepData> stepDatas =DbUtils.getQueryAll(StepData.class);
+        }*/
+/*        List<StepData> stepDatas =DbUtils.getQueryAll(StepData.class);
         lv.setAdapter(new CommonAdapter<StepData>(this,stepDatas,R.layout.item) {
             @Override
             protected void convertView(View item, StepData stepData) {
@@ -66,7 +59,7 @@ public class HistoryActivity extends AppCompatActivity {
                 tv_date.setText(stepData.getToday());
                 tv_step.setText(stepData.getStep()+"步");
             }
-        });
+        });*/
     }
 
     protected <T extends View> T setEmptyView(ListView listView) {
